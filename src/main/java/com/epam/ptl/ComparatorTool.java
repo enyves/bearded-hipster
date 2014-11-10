@@ -1,9 +1,12 @@
 package com.epam.ptl;
 
-import au.com.bytecode.opencsv.CSVReader;
+import
+import com.epam.ptl.reader.CsvDataFileReader;
+import com.epam.ptl.reader.DataFileReader;
+import com.epam.ptl.reader.DataFileReaderFactory;
 
 import java.io.*;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -13,6 +16,7 @@ public class ComparatorTool {
     public static final String PREFIX_2 = "2_";
     public static final String EXTENSION_INTERSECT = ".intersect";
     public static final String EXTENSION_COMPLEMENT = ".complement";
+    public static final DataFileReaderFactory factory = new DataFileReaderFactory();
 
 
     public static void main(String[] args) {
@@ -20,7 +24,8 @@ public class ComparatorTool {
 
         if (args.length < 2) {
             printUsage();
-        }
+
+        } else
 
         if (args.length > 2) {
             columnIndex = Integer.parseInt(args[2]);
@@ -48,8 +53,8 @@ public class ComparatorTool {
             PrintWriter fileComplementWriter1 = new PrintWriter(new File(fileComplement1));
             PrintWriter fileComplementWriter2 = new PrintWriter(new File(fileComplement2))) {
 
-            Map<String, String[]> data1 = readDataFromFile(fileName1, columnIndex);
-            Map<String, String[]> data2 = readDataFromFile(fileName2, columnIndex);
+            Map<String, List<String>> data1 = readDataFromFile(fileName1, columnIndex);
+            Map<String, List<String>> data2 = readDataFromFile(fileName2, columnIndex);
 
             int complementerCount1 = 0;
             int complementerCount2 = 0;
@@ -101,29 +106,9 @@ public class ComparatorTool {
 
 
 
-    private static Map<String, String[]> readDataFromFile(String fileName, int columnIndex) throws IOException {
-        Map<String, String[]> result = new HashMap<>();
-        CSVReader reader = null;
-        try {
-            reader = new CSVReader(new FileReader(fileName));
-            String[] nextLine;
-            int lineNr = 0;
-            while ((nextLine = reader.readNext()) != null) {
-                lineNr++;
-                if (nextLine.length > columnIndex) {
-                    if (result.containsKey(nextLine[columnIndex])) {
-                        throw new IllegalArgumentException(String.format("File %s contains duplicate ID's!", fileName));
-                    }
-                    result.put(nextLine[columnIndex], nextLine);
-                }
-            }
-            System.out.println(String.format("%d lines read from %s", lineNr, fileName));
-        } finally {
-            if (reader != null) {
-                reader.close();
-            }
-        }
-        return result;
+    private static Map<String, List<String>> readDataFromFile(String fileName, int indexColumn) {
+        DataFileReader reader = factory.getReader(fileName, indexColumn);
+        return reader.load();
     }
 
     private static void printUsage() {
